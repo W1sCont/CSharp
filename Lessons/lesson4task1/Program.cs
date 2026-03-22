@@ -15,11 +15,11 @@
                 string[] str1 = str.Split(' ');
                 int result = 0;
 
-                if (str1[1] == "-") result = -Convert.ToInt32(str1[2]);
-                else if (str1[1] == "+") result = Convert.ToInt32(str1[2]);
-                else  result = Convert.ToInt32(str1[0]);
+                if (str1[0] == " " && str1[1] == "-") result = -Convert.ToInt32(str1[2]);
+                else if (str1[0] == " " && str1[1] == "+") result = Convert.ToInt32(str1[2]);
+                else  result = 0;
 
-                for (ushort i = 1; i < str1.Length; ++i)
+                for (ushort i = 0; i < str1.Length; ++i)
                 {
                     if (str1[i] == "+") result += Convert.ToInt32(str1[i + 1]);
                     else if (str1[i] == "-") result -= Convert.ToInt32(str1[i + 1]);
