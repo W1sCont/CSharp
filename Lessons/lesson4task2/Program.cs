@@ -1,4 +1,5 @@
-﻿namespace Task2
+﻿using System.Text;
+namespace Task2
 {
     class MainClass
     {
