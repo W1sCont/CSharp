@@ -17,13 +17,29 @@ namespace Taks3
                 
                 Console.WriteLine("Введіть слово яке потрібно замінити на ***: ");
                 string? word = Console.ReadLine();
+                int n = word.Length;
                 StringBuilder temp = new("");
+
                 for (int i = 0; i < str1.Length; ++i)
                 {
-                    if (str1[i] == word)
+                    if (str1[i].StartsWith(word, StringComparison.OrdinalIgnoreCase))
                     {
-                        temp.Append("***");
-                        temp.Append(" ");
+                        if (str1[i].Length == n || !char.IsLetter(str1[i][n]))
+                        {
+                            temp.Append("***");
+                            
+                            if (str1[i].Length > n)
+                            {
+                                temp.Append(str1[i].Substring(n));
+                                temp.Append(" ");
+                            }
+                            else temp.Append(" ");
+                        }
+                        else
+                        {
+                            temp.Append(str1[i]);
+                            temp.Append(" ");
+                        }
                     }
                     else 
                     {   
