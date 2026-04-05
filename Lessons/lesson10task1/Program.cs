@@ -10,7 +10,9 @@ namespace CSharpApplication.Lesson10
 
             try
             {
-                Console.WriteLine("Введіть дані для запису: ");
+                Console.WriteLine("Введіть шлях до файлу: ");
+                string? path = Console.ReadLine();
+                Console.WriteLine("Введіть числа для запису або двічу ентер для заверешшея: ");
                 fn10 result = new fn10();
                 string? str;
                 double temp = 0;
@@ -18,14 +20,22 @@ namespace CSharpApplication.Lesson10
                 while (true)
                 {
                     str = Console.ReadLine();
-                    if (str == null) break;
+                    if (str == "") break;
                     temp = Convert.ToDouble(str);
+                    result.AddToArr(temp);
                 }
+                Console.WriteLine("Запис у файл!");
+                result.SaveToFile(path);
 
+                Console.WriteLine("Зчитування з файлу!");
+                fn10 resultNew = fn10.LoadFromFile(path);
+
+                Console.WriteLine(resultNew);
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
+
             }
         }
     }
