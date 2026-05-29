@@ -1,86 +1,109 @@
 namespace lesson19task1;
 
 public delegate void TamagochiDelegate(string? messsage);
-
 public class Tamagochi
 {
-    public event TamagochiDelegate? OnRequest;
-    public event TamagochiDelegate? OnCriticalState;
+    public int Hungry { get; private set; }
+    public int Tired { get; private set; }
     
-    private string[] requests = { "Погодувати", "Погуляти", "Укласти спати", "Полікувати", "Пограти" };
-    private int lastRequestIndex = -1;
-    private int ignoreCount = 0;
-    private bool isSick = false;
-    public bool IsAlive { get; private set; } = true;
+    private int _strikes = 0;
+    private bool _isHungry = false;
+    private bool _isTired = false;
+    public bool isSick { get; private set; } = false;
+    public bool isAlive { get; private set; } = true; 
 
-    public void StartLife()
+    private readonly Random _random = new Random();
+
+    public event TamagochiDelegate? BecameHungry;
+    public event TamagochiDelegate? BecameTired;
+    public event TamagochiDelegate? Sick;
+    public event TamagochiDelegate? Happy;
+    public event TamagochiDelegate? Died;
+
+    public Tamagochi()
     {
-        Random rand = new Random();
-        while (IsAlive)
+        Hungry = 0;
+        Tired = 0;
+    }
+    public void NextTurn()
+    {
+        if (_isHungry || _isTired) _strikes++;
+        GenerateNeed();
+        CheckStatus();
+    }
+
+    private void GenerateNeed()
+    {
+        int result = _random.Next(0, 2);
+        switch (result)
         {
-            Console.Clear();
-            DrawPet();
-            int currentIndex;
-            do
-            {
-                currentIndex = rand.Next(requests.Length);
-            } while (currentIndex == lastRequestIndex);
-
-            lastRequestIndex = currentIndex;
-            string currentRequest = requests[currentIndex];
-            OnRequest?.Invoke(currentRequest);
-            Console.WriteLine("\nНатисніть 'Enter', щоб виконати, або почекайте (3 сек)...");
-
-            if (!WaitForInput(3000))
-            {
-                ignoreCount++;
-                HandleIgnoredRequest();
-            }
-            else
-            {
-                ignoreCount = 0;
-                isSick = false;
-                Console.WriteLine("Дякую! Мені стало краще.");
-                Thread.Sleep(1000);
-            }
+            case 0:
+                Hungry += 35;
+                if (Hungry > 100) Hungry = 99;
+                break;
+            case 1:
+                Tired += 35;
+                if (Tired > 100) Tired = 99;
+                break;
         }
     }
-    private bool WaitForInput(int timeoutMs)
+
+    public void Feed()
     {
-        DateTime start = DateTime.Now;
-        while ((DateTime.Now - start).TotalMilliseconds < timeoutMs)
-        {
-            if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter)
-                return true;
-            Thread.Sleep(100);
-        }
-        return false;
+        if (Hungry > 50) Hungry -= 50;
+        _isHungry = false;
+        if (_strikes > 0) { _strikes--; }
+        Happy?.Invoke("Я більше не голодний =)");
     }
-    private void HandleIgnoredRequest()
+
+    public void PutToBed()
     {
-        if (ignoreCount >= 3 && !isSick)
+        if (Tired > 50) Tired -= 50;
+        _isTired = false;
+        if (_strikes > 0) { _strikes--; }
+        Happy?.Invoke("Я гарно виспався");
+    }
+
+    public void Cure()
+    {
+        if(!isSick) return;
+
+        _strikes = 0;
+        if(Hungry > 50) Hungry = 0;
+        if(Tired > 50) Tired = 0;
+        isSick = false;
+        Happy?.Invoke("Я почуваю себе чудово =)");
+    }
+
+    private void CheckStatus()
+    {
+        if (Hungry >= 100 || Tired >= 100)
+        {
+            _strikes++;
+        }
+
+        if (Tired >= 60 && !_isTired)
+        {
+            _isTired = true;
+            BecameTired?.Invoke("Я хочу спатки...");
+        }
+
+        if (Hungry >= 60 && !_isHungry)
+        {
+            _isHungry = true;
+            BecameHungry?.Invoke("Я дуже голодний!");
+        }
+
+        if (_strikes == 3)
         {
             isSick = true;
-            OnCriticalState?.Invoke("Я захворів! Терміново полікуй мене!");
-            Thread.Sleep(2000);
+            Sick?.Invoke("Я дуже сильно захворів! Мені потрібні ліки!");
         }
-        else if (isSick && ignoreCount >= 4)
+
+        if(_strikes >= 4)
         {
-            IsAlive = false;
-            OnCriticalState?.Invoke("Ваш Тамагочі помер від неуваги... 💀");
+            Died?.Invoke("Ти задовго ігнорував мене... Прощавай.");
+            isAlive = false;
         }
-    }
-    private void DrawPet()
-    {
-        string face = isSick ? "  X   X  " : "  o   o  ";
-        string mouth = isSick ? "    ~    " : "    v    ";
-    
-        Console.WriteLine("   .--.              .--.   ");
-        Console.WriteLine("  : (\\ \". _......_ .\" /) :  ");
-        Console.WriteLine("   '.    `        `    .'   ");
-        Console.WriteLine($"    /  {face}      \\    ");
-        Console.WriteLine($"   (   {mouth}       )   ");
-        Console.WriteLine("    '._            _.'    ");
-        Console.WriteLine("       '--......--'       ");
     }
 }
